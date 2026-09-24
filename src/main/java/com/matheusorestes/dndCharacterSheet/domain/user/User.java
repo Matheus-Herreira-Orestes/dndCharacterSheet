@@ -7,10 +7,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import jakarta.persistence.Column;
+
 
 import java.util.Collection;
 import java.util.List;
@@ -20,7 +24,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity(name = "users")
-@Table(name = "users")
+@Table(
+    name = "users",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_users_login", columnNames = "login")
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,6 +40,7 @@ public class User implements UserDetails{
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column (nullable = false)
     private String login;
 
     private String password;
