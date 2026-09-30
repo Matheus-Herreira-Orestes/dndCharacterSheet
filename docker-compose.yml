@@ -33,6 +33,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dnd_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 123
+    volumes:
+      - character_photos:/app/uploads/character-photos
 
 volumes:
   postgres_data:
+  character_photos:

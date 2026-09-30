@@ -12,6 +12,7 @@ import java.util.Set;
 import com.matheusorestes.dndCharacterSheet.domain.dice.HitDice;
 import com.matheusorestes.dndCharacterSheet.domain.rules.AbilityType;
 import com.matheusorestes.dndCharacterSheet.domain.rules.Skill;
+import com.matheusorestes.dndCharacterSheet.domain.user.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.CollectionTable;
@@ -25,6 +26,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.MapKeyEnumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -48,6 +51,17 @@ public class Character {
     private int level;
 
     private int profeciencyBonus;
+
+    /**
+     * Server-generated key of the image in the photo storage. Image bytes never
+     * belong in this table.
+     */
+    @Column(name = "character_photo_key", length = 512)
+    private String characterPhotoKey;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id")
+    private User createdBy;
 
     //combat stats
     private int armorClass;
@@ -123,6 +137,75 @@ public class Character {
     @Column(name = "feature_description", nullable = false)
     private Map<String, String> featuresAndTraits = new HashMap<>();
 
+    //Money and equipment
+    private double copperPieces;
+    private double silverPieces;
+    private double electrumPieces;
+    private double goldPieces;
+    private double platinumPieces;
+
+
+    @ElementCollection
+    @CollectionTable(
+        name = "character_equipment",
+        joinColumns = @JoinColumn(name = "character_id")
+    )
+    @Column(name = "equipment_item", nullable = false)
+    private List<String> equipment = new ArrayList<>();
+
+    //Other profeciencies and languages
+    @ElementCollection
+    @CollectionTable(
+        name = "character_other_proficiencies",
+        joinColumns = @JoinColumn(name = "character_id")
+    )
+    @Column(name = "proficiency", nullable = false)
+    private List<String> otherProficiencies = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(
+        name = "character_languages",
+        joinColumns = @JoinColumn(name = "character_id")
+    )
+    @Column(name = "language", nullable = false)
+    private List<String> languages = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(
+        name = "Other_notes",
+        joinColumns = @JoinColumn(name = "character_id")
+    )
+    @Column(name = "note", nullable = false)
+    private List<String> otherNotes = new ArrayList<>();
+
+
+    //Backstory, other traits and habilitys, treasure, allies, and enemies, and other information can be added as needed.
+    private String backstory;
+    @ElementCollection
+    @CollectionTable(
+        name = "character_other_traits_and_abilities",
+        joinColumns = @JoinColumn(name = "character_id")
+    )
+    @MapKeyColumn(name = "trait_name")
+    @Column(name = "trait_description", nullable = false)
+    private HashMap<String, String> otherTraitsAndAbilities = new HashMap<>();
+
+    @ElementCollection
+    @CollectionTable(
+        name = "character_treasure",
+        joinColumns = @JoinColumn(name = "character_id")
+    )
+    @Column(name = "treasure_item", nullable = false)
+    private List<String> treasure = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(
+        name = "character_allies_and_enemies",
+        joinColumns = @JoinColumn(name = "character_id")
+    )
+    @MapKeyColumn(name = "name")
+    @Column(name = "description", nullable = false)
+    private HashMap<String, String> alliesAndEnemies = new HashMap<>();
 
     // Constructors, getters, and setters omitted for brevity.
     private static Map<AbilityType, Integer> createDefaultAbilityScores() {
@@ -133,8 +216,39 @@ public class Character {
         return scores;
     }
 
+    //MAGICCCCC
+    //KEY HABILITIES, CD DO TR, ATTACK BONUS
+    @Enumerated(EnumType.STRING)
+    private AbilityType keyAbility;
+
+    private int spellSaveDC;
+
+    private int spellAttackBonus;
+
+    //SPELLS
+
     public int getAbilityScore(AbilityType abilityType) {
         return abilityScores.get(abilityType);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getCharacterPhotoKey() {
+        return characterPhotoKey;
+    }
+
+    public void setCharacterPhotoKey(String characterPhotoKey) {
+        this.characterPhotoKey = characterPhotoKey;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
     }
 
     public void setAbilityScore(AbilityType abilityType, int score) {
