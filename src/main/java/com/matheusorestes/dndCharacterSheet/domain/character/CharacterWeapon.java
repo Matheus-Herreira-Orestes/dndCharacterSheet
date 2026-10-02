@@ -13,6 +13,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+/** A weapon owned by a character, whether the weapon is official or homebrew. */
 @Entity
 @Table(name = "character_weapon")
 public class CharacterWeapon {
@@ -25,86 +26,44 @@ public class CharacterWeapon {
     @JoinColumn(name = "character_id", nullable = false)
     private Character character;
 
-    // Used for official/API weapons, e.g. "longsword".
-    private String apiWeaponIndex;
-
-    // Used for homebrew weapons only.
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "homebrew_weapon_id")
-    private Weapon homebrewWeapon;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "weapon_id", nullable = false)
+    private Weapon weapon;
 
     private boolean equipped;
     private int quantity = 1;
 
-    public CharacterWeapon() {
+    protected CharacterWeapon() {
+        // Required by JPA.
     }
 
-    public CharacterWeapon(Character character, String apiWeaponIndex, Weapon homebrewWeapon, boolean equipped, int quantity) {
+    public CharacterWeapon(Character character, Weapon weapon, boolean equipped, int quantity) {
         this.character = character;
-        this.apiWeaponIndex = apiWeaponIndex;
-        this.homebrewWeapon = homebrewWeapon;
+        this.weapon = weapon;
         this.equipped = equipped;
         this.quantity = quantity;
         validateState();
     }
 
-
-    public String getId() {
-        return id;
-    }
-
-    public Character getCharacter() {
-        return character;
-    }
-
-    public void setCharacter(Character character) {
-        this.character = character;
-    }
-
-    public String getApiWeaponIndex() {
-        return apiWeaponIndex;
-    }
-
-    public void setApiWeaponIndex(String apiWeaponIndex) {
-        this.apiWeaponIndex = apiWeaponIndex;
-    }
-
-    public Weapon getHomebrewWeapon() {
-        return homebrewWeapon;
-    }
-
-    public void setHomebrewWeapon(Weapon homebrewWeapon) {
-        this.homebrewWeapon = homebrewWeapon;
-    }
-
-    public boolean isEquipped() {
-        return equipped;
-    }
-
-    public void setEquipped(boolean equipped) {
-        this.equipped = equipped;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
+    public String getId() { return id; }
+    public Character getCharacter() { return character; }
+    public void setCharacter(Character character) { this.character = character; }
+    public Weapon getWeapon() { return weapon; }
+    public void setWeapon(Weapon weapon) { this.weapon = weapon; }
+    public boolean isEquipped() { return equipped; }
+    public void setEquipped(boolean equipped) { this.equipped = equipped; }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 
     @PrePersist
     @PreUpdate
     private void validateState() {
-        boolean hasApiWeapon = apiWeaponIndex != null && !apiWeaponIndex.isBlank();
-        boolean hasHomebrewWeapon = homebrewWeapon != null;
-
-        if (hasApiWeapon == hasHomebrewWeapon) {
-            throw new IllegalStateException(
-                "A character weapon must reference exactly one API or homebrew weapon."
-            );
+        if (character == null) {
+            throw new IllegalStateException("A character weapon must belong to a character.");
         }
-
+        if (weapon == null) {
+            throw new IllegalStateException("A character weapon must reference a local weapon.");
+        }
         if (quantity < 1) {
             throw new IllegalStateException("A character weapon quantity must be at least 1.");
         }

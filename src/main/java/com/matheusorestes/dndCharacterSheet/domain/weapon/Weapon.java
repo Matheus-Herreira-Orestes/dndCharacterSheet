@@ -3,12 +3,16 @@ package com.matheusorestes.dndCharacterSheet.domain.weapon;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.matheusorestes.dndCharacterSheet.domain.catalog.CatalogSource;
 import com.matheusorestes.dndCharacterSheet.domain.dice.DiceTerm;
 import com.matheusorestes.dndCharacterSheet.domain.user.User;
 
 import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,7 +29,16 @@ public class Weapon {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    /** The D&D 5e API index. Null for homebrew weapons. */
+    @Column(name = "external_index", unique = true)
+    private String externalIndex;
+
+    @Column(nullable = false)
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CatalogSource source;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id")
@@ -43,11 +56,11 @@ public class Weapon {
         name = "weapon_damage",
         joinColumns = @JoinColumn(name = "weapon_id")
     )
-    private List<DiceTerm> WeaponDamage = new ArrayList<>();
+    private List<DiceTerm> weaponDamage = new ArrayList<>();
 
     private boolean ispublic;
 
-    public Weapon() {
+    protected Weapon() {
     }
 
     public Weapon(
@@ -55,19 +68,36 @@ public class Weapon {
             User createdBy,
             boolean ispublic, 
             List<String> properties, 
-            List<DiceTerm> WeaponDamage
+            List<DiceTerm> weaponDamage
         ) {
         this.name = name;
         this.createdBy = createdBy;
         this.ispublic = ispublic;
         this.properties = properties == null ? new ArrayList<>() : new ArrayList<>(properties);
-        this.WeaponDamage = new ArrayList<>(WeaponDamage);
+        this.weaponDamage = weaponDamage == null ? new ArrayList<>() : new ArrayList<>(weaponDamage);
+        this.source = CatalogSource.HOMEBREW;
+    }
+
+    public static Weapon official(String externalIndex, String name, List<String> properties,
+            List<DiceTerm> weaponDamage) {
+        Weapon weapon = new Weapon(name, null, true, properties, weaponDamage);
+        weapon.externalIndex = externalIndex;
+        weapon.source = CatalogSource.OFFICIAL;
+        return weapon;
     }
 
 
     // Getters and Setters
     public String getId() {
         return id;
+    }
+
+    public String getExternalIndex() {
+        return externalIndex;
+    }
+
+    public CatalogSource getSource() {
+        return source;
     }
 
     public String getName() {
@@ -103,10 +133,10 @@ public class Weapon {
     }
 
     public List<DiceTerm> getWeaponDamage() {
-        return WeaponDamage;
+        return weaponDamage;
     }
 
     public void setWeaponDamage(List<DiceTerm> weaponDamage) {
-        WeaponDamage = new ArrayList<>(weaponDamage);
+        this.weaponDamage = weaponDamage == null ? new ArrayList<>() : new ArrayList<>(weaponDamage);
     }
 }
