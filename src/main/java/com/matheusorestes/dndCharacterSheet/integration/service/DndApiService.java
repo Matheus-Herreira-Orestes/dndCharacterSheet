@@ -10,6 +10,7 @@ import com.matheusorestes.dndCharacterSheet.integration.dto.ClassLevelDto;
 import com.matheusorestes.dndCharacterSheet.integration.dto.DndApiListDto;
 import com.matheusorestes.dndCharacterSheet.integration.dto.EquipmentCategoryDto;
 import com.matheusorestes.dndCharacterSheet.integration.dto.SpellDto;
+import com.matheusorestes.dndCharacterSheet.integration.dto.SubclassDto;
 import com.matheusorestes.dndCharacterSheet.integration.dto.WeaponDto;
 
 @Service
@@ -74,6 +75,30 @@ public class DndApiService {
                 .uri("/api/2014/classes/{index}", index)
                 .retrieve()
                 .bodyToMono(ClassDto.class)
+                .block();
+    }
+
+    public List<String> getClassIndexes() {
+        DndApiListDto response = webClient.get()
+                .uri("/api/2014/classes")
+                .retrieve()
+                .bodyToMono(DndApiListDto.class)
+                .block();
+
+        if (response == null || response.getResults() == null) {
+            return List.of();
+        }
+
+        return response.getResults().stream()
+                .map(reference -> reference.getIndex())
+                .toList();
+    }
+
+    public SubclassDto getSubclass(String index) {
+        return webClient.get()
+                .uri("/api/2014/subclasses/{index}", index)
+                .retrieve()
+                .bodyToMono(SubclassDto.class)
                 .block();
     }
 
