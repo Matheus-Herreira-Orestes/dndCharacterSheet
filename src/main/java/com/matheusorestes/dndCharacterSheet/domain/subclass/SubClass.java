@@ -1,6 +1,7 @@
-package com.matheusorestes.dndCharacterSheet.domain.characterclass;
+package com.matheusorestes.dndCharacterSheet.domain.subclass;
 
 import com.matheusorestes.dndCharacterSheet.domain.catalog.CatalogSource;
+import com.matheusorestes.dndCharacterSheet.domain.dndclass.DndClass;
 import com.matheusorestes.dndCharacterSheet.domain.user.User;
 
 import jakarta.persistence.Column;
@@ -16,60 +17,67 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "character_class")
-public class CharacterClass {
+@Table(name = "subclass")
+public class SubClass {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    /** The D&D 5e API index. Null for a homebrew class. */
+    /** The D&D 5e API index. Null for a homebrew subclass. */
     @Column(name = "external_index", unique = true)
     private String externalIndex;
 
     @Column(nullable = false)
     private String name;
 
-    private Integer hitDie;
-    private String spellcastingAbility;
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    private String flavor;
     private boolean ispublic;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CatalogSource source;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "character_class_id", nullable = false)
+    private DndClass characterClass;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id")
     private User createdBy;
 
-    protected CharacterClass() {
+    protected SubClass() {
         // Required by JPA.
     }
 
-    public CharacterClass(String name, Integer hitDie, String spellcastingAbility,
+    public SubClass(String name, String description, String flavor, DndClass characterClass,
             User createdBy, boolean ispublic) {
         this.name = name;
-        this.hitDie = hitDie;
-        this.spellcastingAbility = spellcastingAbility;
+        this.description = description;
+        this.flavor = flavor;
+        this.characterClass = characterClass;
         this.createdBy = createdBy;
         this.ispublic = ispublic;
         this.source = CatalogSource.HOMEBREW;
     }
 
-    public static CharacterClass official(String externalIndex, String name, Integer hitDie,
-            String spellcastingAbility) {
-        CharacterClass characterClass = new CharacterClass(name, hitDie, spellcastingAbility, null, true);
-        characterClass.externalIndex = externalIndex;
-        characterClass.source = CatalogSource.OFFICIAL;
-        return characterClass;
+    public static SubClass official(String externalIndex, String name, String description, String flavor,
+            DndClass characterClass) {
+        SubClass subclass = new SubClass(name, description, flavor, characterClass, null, true);
+        subclass.externalIndex = externalIndex;
+        subclass.source = CatalogSource.OFFICIAL;
+        return subclass;
     }
 
     public String getId() { return id; }
     public String getExternalIndex() { return externalIndex; }
     public String getName() { return name; }
-    public Integer getHitDie() { return hitDie; }
-    public String getSpellcastingAbility() { return spellcastingAbility; }
+    public String getDescription() { return description; }
+    public String getFlavor() { return flavor; }
     public boolean isIspublic() { return ispublic; }
     public CatalogSource getSource() { return source; }
+    public DndClass getCharacterClass() { return characterClass; }
     public User getCreatedBy() { return createdBy; }
 }
