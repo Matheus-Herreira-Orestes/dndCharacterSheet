@@ -34,6 +34,7 @@ public class WeaponService {
             currentUser,
             dto.isPublic(),
             dto.properties(),
+            dto.proficiencies(),
             weaponDamage
         );
 

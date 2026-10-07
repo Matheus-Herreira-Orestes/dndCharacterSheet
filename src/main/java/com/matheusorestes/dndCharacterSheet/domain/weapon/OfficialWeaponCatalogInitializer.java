@@ -16,6 +16,7 @@ import com.matheusorestes.dndCharacterSheet.domain.catalog.CatalogSource;
 import com.matheusorestes.dndCharacterSheet.domain.damage.DamageType;
 import com.matheusorestes.dndCharacterSheet.domain.dice.DiceTerm;
 import com.matheusorestes.dndCharacterSheet.domain.dice.DiceType;
+import com.matheusorestes.dndCharacterSheet.domain.rules.WeaponProficiency;
 import com.matheusorestes.dndCharacterSheet.integration.dto.WeaponDamageDto;
 import com.matheusorestes.dndCharacterSheet.integration.dto.WeaponDto;
 import com.matheusorestes.dndCharacterSheet.integration.service.DndApiService;
@@ -55,9 +56,38 @@ public class OfficialWeaponCatalogInitializer implements ApplicationRunner {
     }
 
     private Weapon toOfficialWeapon(WeaponDto dto) {
-        List<String> properties = dto.getProperties() == null ? List.of()
-                : dto.getProperties().stream().map(property -> property.getName()).toList();
-        return Weapon.official(dto.getIndex(), dto.getName(), properties, toDiceTerms(dto.getDamage()));
+        List<WeaponProperty> properties = dto.getProperties() == null ? List.of()
+                : dto.getProperties().stream()
+                        .map(property -> property.getName().toUpperCase(Locale.ROOT)
+                                .replace('-', '_').replace(' ', '_'))
+                        .map(WeaponProperty::valueOf)
+                        .toList();
+        return Weapon.official(dto.getIndex(), dto.getName(), properties, proficienciesFor(dto), toDiceTerms(dto.getDamage()));
+    }
+
+    private List<WeaponProficiency> proficienciesFor(WeaponDto dto) {
+        List<WeaponProficiency> proficiencies = new java.util.ArrayList<>();
+        if (dto.getWeaponCategory() != null) {
+            proficiencies.add(WeaponProficiency.valueOf(dto.getWeaponCategory().toUpperCase(Locale.ROOT) + "_WEAPONS"));
+        }
+        if (dto.getIndex() != null) {
+            String weaponName = proficiencyNameFor(dto.getIndex());
+            try {
+                proficiencies.add(WeaponProficiency.valueOf(weaponName));
+            } catch (IllegalArgumentException ignored) {
+                // Some API weapons (for example blowgun ammunition) have no matching class proficiency.
+            }
+        }
+        return proficiencies;
+    }
+
+    private String proficiencyNameFor(String weaponIndex) {
+        return switch (weaponIndex) {
+            case "hand-crossbow" -> "CROSSBOW_HAND";
+            case "heavy-crossbow" -> "CROSSBOW_HEAVY";
+            case "light-crossbow" -> "CROSSBOW_LIGHT";
+            default -> weaponIndex.toUpperCase(Locale.ROOT).replace('-', '_');
+        };
     }
 
     private List<DiceTerm> toDiceTerms(WeaponDamageDto damage) {

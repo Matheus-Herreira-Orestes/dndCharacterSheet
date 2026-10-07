@@ -3,13 +3,15 @@ package com.matheusorestes.dndCharacterSheet.domain.weapon;
 import java.util.List;
 
 import com.matheusorestes.dndCharacterSheet.domain.dice.DiceTermDTO;
+import com.matheusorestes.dndCharacterSheet.domain.rules.WeaponProficiency;
 
 public record WeaponResponseDTO(
     String id,
     String name,
     boolean isPublic,
     String createdByLogin,
-    List<String> properties,
+    List<WeaponProperty> properties,
+    List<WeaponProficiency> proficiencies,
     List<DiceTermDTO> weaponDamage
 ) {
     public static WeaponResponseDTO from(Weapon weapon) {
@@ -19,6 +21,7 @@ public record WeaponResponseDTO(
             weapon.isIspublic(),
             weapon.getCreatedBy() == null ? null : weapon.getCreatedBy().getLogin(),
             weapon.getProperties(),
+            weapon.getProficiencies(),
             weapon.getWeaponDamage().stream()
                 .map(diceTerm -> diceTerm.toDTO())
                 .toList()

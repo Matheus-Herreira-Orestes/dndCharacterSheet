@@ -1,0 +1,32 @@
+package com.matheusorestes.dndCharacterSheet.domain.rules;
+
+/** Standard D&D 5e tools, kits, instruments, and vehicle categories. */
+public enum ToolProficiency {
+    ALCHEMISTS_SUPPLIES,
+    BREWERS_SUPPLIES,
+    CALLIGRAPHERS_SUPPLIES,
+    CARPENTERS_TOOLS,
+    CARTOGRAPHERS_TOOLS,
+    COBBLERS_TOOLS,
+    COOKS_UTENSILS,
+    DISGUISE_KIT,
+    FORGERY_KIT,
+    GAMING_SET,
+    GLASSBLOWERS_TOOLS,
+    HERBALISM_KIT,
+    JEWELERS_TOOLS,
+    LAND_VEHICLES,
+    LEATHERWORKERS_TOOLS,
+    MASONS_TOOLS,
+    MUSICAL_INSTRUMENT,
+    NAVIGATORS_TOOLS,
+    PAINTERS_SUPPLIES,
+    POISONERS_KIT,
+    POTTERS_TOOLS,
+    SMITHS_TOOLS,
+    THIEVES_TOOLS,
+    TINKERS_TOOLS,
+    WEAVERS_TOOLS,
+    WOODCARVERS_TOOLS,
+    WATER_VEHICLES
+}

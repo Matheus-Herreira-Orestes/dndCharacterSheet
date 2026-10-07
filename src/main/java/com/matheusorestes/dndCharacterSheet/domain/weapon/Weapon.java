@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.matheusorestes.dndCharacterSheet.domain.catalog.CatalogSource;
 import com.matheusorestes.dndCharacterSheet.domain.dice.DiceTerm;
+import com.matheusorestes.dndCharacterSheet.domain.rules.WeaponProficiency;
 import com.matheusorestes.dndCharacterSheet.domain.user.User;
 
 import jakarta.persistence.CollectionTable;
@@ -49,7 +50,19 @@ public class Weapon {
         name = "weapon_properties",
         joinColumns = @JoinColumn(name = "weapon_id")
     )
-    private List<String> properties = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @Column(name = "weapon_property", nullable = false)
+    private List<WeaponProperty> properties = new ArrayList<>();
+
+    /** Proficiencies that allow this weapon, such as SIMPLE_WEAPONS and JAVELIN. */
+    @ElementCollection
+    @CollectionTable(
+        name = "weapon_proficiencies",
+        joinColumns = @JoinColumn(name = "weapon_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "weapon_proficiency", nullable = false)
+    private List<WeaponProficiency> proficiencies = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(
@@ -67,20 +80,22 @@ public class Weapon {
             String name, 
             User createdBy,
             boolean ispublic, 
-            List<String> properties, 
+            List<WeaponProperty> properties,
+            List<WeaponProficiency> proficiencies,
             List<DiceTerm> weaponDamage
         ) {
         this.name = name;
         this.createdBy = createdBy;
         this.ispublic = ispublic;
         this.properties = properties == null ? new ArrayList<>() : new ArrayList<>(properties);
+        this.proficiencies = proficiencies == null ? new ArrayList<>() : new ArrayList<>(proficiencies);
         this.weaponDamage = weaponDamage == null ? new ArrayList<>() : new ArrayList<>(weaponDamage);
         this.source = CatalogSource.HOMEBREW;
     }
 
-    public static Weapon official(String externalIndex, String name, List<String> properties,
-            List<DiceTerm> weaponDamage) {
-        Weapon weapon = new Weapon(name, null, true, properties, weaponDamage);
+    public static Weapon official(String externalIndex, String name, List<WeaponProperty> properties,
+            List<WeaponProficiency> proficiencies, List<DiceTerm> weaponDamage) {
+        Weapon weapon = new Weapon(name, null, true, properties, proficiencies, weaponDamage);
         weapon.externalIndex = externalIndex;
         weapon.source = CatalogSource.OFFICIAL;
         return weapon;
@@ -124,12 +139,20 @@ public class Weapon {
         this.ispublic = ispublic;
     }
     
-    public List<String> getProperties() {
-        return properties;
+    public List<WeaponProperty> getProperties() {
+        return List.copyOf(properties);
     }
 
-    public void setProperties(List<String> properties) {
+    public void setProperties(List<WeaponProperty> properties) {
         this.properties = properties == null ? new ArrayList<>() : new ArrayList<>(properties);
+    }
+
+    public List<WeaponProficiency> getProficiencies() {
+        return List.copyOf(proficiencies);
+    }
+
+    public void setProficiencies(List<WeaponProficiency> proficiencies) {
+        this.proficiencies = proficiencies == null ? new ArrayList<>() : new ArrayList<>(proficiencies);
     }
 
     public List<DiceTerm> getWeaponDamage() {
