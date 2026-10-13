@@ -8,6 +8,8 @@ import com.matheusorestes.dndCharacterSheet.domain.rules.WeaponProficiency;
 public record WeaponResponseDTO(
     String id,
     String name,
+    String weight,
+    String cost,
     boolean isPublic,
     String createdByLogin,
     List<WeaponProperty> properties,
@@ -18,6 +20,8 @@ public record WeaponResponseDTO(
         return new WeaponResponseDTO(
             weapon.getId(),
             weapon.getName(),
+            weapon.getWeight(),
+            weapon.getCost(),
             weapon.isIspublic(),
             weapon.getCreatedBy() == null ? null : weapon.getCreatedBy().getLogin(),
             weapon.getProperties(),

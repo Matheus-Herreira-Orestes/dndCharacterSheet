@@ -54,7 +54,7 @@ public class Weapon {
     @Column(name = "weapon_property", nullable = false)
     private List<WeaponProperty> properties = new ArrayList<>();
 
-    /** Proficiencies that allow this weapon, such as SIMPLE_WEAPONS and JAVELIN. */
+    /** Proficiency groups that allow this weapon, such as SIMPLE_WEAPONS. */
     @ElementCollection
     @CollectionTable(
         name = "weapon_proficiencies",
@@ -71,6 +71,10 @@ public class Weapon {
     )
     private List<DiceTerm> weaponDamage = new ArrayList<>();
 
+    private String weight; // String to add more freedom to homebrew users
+
+    private String cost; // String to add more freedom to homebrew users
+
     private boolean ispublic;
 
     protected Weapon() {
@@ -84,9 +88,24 @@ public class Weapon {
             List<WeaponProficiency> proficiencies,
             List<DiceTerm> weaponDamage
         ) {
+        this(name, createdBy, ispublic, null, null, properties, proficiencies, weaponDamage);
+    }
+
+    public Weapon(
+            String name,
+            User createdBy,
+            boolean ispublic,
+            String weight,
+            String cost,
+            List<WeaponProperty> properties,
+            List<WeaponProficiency> proficiencies,
+            List<DiceTerm> weaponDamage
+        ) {
         this.name = name;
         this.createdBy = createdBy;
         this.ispublic = ispublic;
+        this.weight = weight;
+        this.cost = cost;
         this.properties = properties == null ? new ArrayList<>() : new ArrayList<>(properties);
         this.proficiencies = proficiencies == null ? new ArrayList<>() : new ArrayList<>(proficiencies);
         this.weaponDamage = weaponDamage == null ? new ArrayList<>() : new ArrayList<>(weaponDamage);
@@ -95,7 +114,12 @@ public class Weapon {
 
     public static Weapon official(String externalIndex, String name, List<WeaponProperty> properties,
             List<WeaponProficiency> proficiencies, List<DiceTerm> weaponDamage) {
-        Weapon weapon = new Weapon(name, null, true, properties, proficiencies, weaponDamage);
+        return official(externalIndex, name, null, null, properties, proficiencies, weaponDamage);
+    }
+
+    public static Weapon official(String externalIndex, String name, String weight, String cost,
+            List<WeaponProperty> properties, List<WeaponProficiency> proficiencies, List<DiceTerm> weaponDamage) {
+        Weapon weapon = new Weapon(name, null, true, weight, cost, properties, proficiencies, weaponDamage);
         weapon.externalIndex = externalIndex;
         weapon.source = CatalogSource.OFFICIAL;
         return weapon;
@@ -121,6 +145,22 @@ public class Weapon {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getWeight() {
+        return weight;
+    }
+
+    public void setWeight(String weight) {
+        this.weight = weight;
+    }
+
+    public String getCost() {
+        return cost;
+    }
+
+    public void setCost(String cost) {
+        this.cost = cost;
     }
 
     public User getCreatedBy() {

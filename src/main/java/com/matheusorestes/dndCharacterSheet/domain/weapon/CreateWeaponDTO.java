@@ -16,6 +16,8 @@ import jakarta.validation.constraints.Size;
 public record CreateWeaponDTO(
     @NotBlank String name,
     boolean isPublic,
+    String weight,
+    String cost,
     List<WeaponProperty> properties,
     List<WeaponProficiency> proficiencies,
     @NotNull @Size(min = 1) List<@Valid DiceTermDTO> weaponDamage

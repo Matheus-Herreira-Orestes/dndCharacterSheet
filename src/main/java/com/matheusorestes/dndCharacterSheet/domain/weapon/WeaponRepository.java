@@ -8,5 +8,6 @@ import com.matheusorestes.dndCharacterSheet.domain.catalog.CatalogSource;
 
 public interface WeaponRepository extends JpaRepository<Weapon, String>{
     List<Weapon> findByIspublicTrueOrCreatedById(String userId);
+    List<Weapon> findBySource(CatalogSource source);
     boolean existsBySource(CatalogSource source);
 }

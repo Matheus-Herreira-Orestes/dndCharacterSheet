@@ -33,6 +33,8 @@ public class WeaponService {
             dto.name(),
             currentUser,
             dto.isPublic(),
+            dto.weight(),
+            dto.cost(),
             dto.properties(),
             dto.proficiencies(),
             weaponDamage

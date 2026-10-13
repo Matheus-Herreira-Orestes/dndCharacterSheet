@@ -39,6 +39,7 @@ public class OfficialWeaponCatalogInitializer implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) {
         if (weaponRepository.existsBySource(CatalogSource.OFFICIAL)) {
+            importMissingCostAndWeight();
             return;
         }
 
@@ -55,6 +56,31 @@ public class OfficialWeaponCatalogInitializer implements ApplicationRunner {
         }
     }
 
+    private void importMissingCostAndWeight() {
+        try {
+            int updated = 0;
+            for (Weapon weapon : weaponRepository.findBySource(CatalogSource.OFFICIAL)) {
+                if (weapon.getExternalIndex() == null || (weapon.getWeight() != null && weapon.getCost() != null)) {
+                    continue;
+                }
+
+                WeaponDto dto = dndApiService.getWeapon(weapon.getExternalIndex());
+                if (dto == null) {
+                    continue;
+                }
+                weapon.setWeight(formatWeight(dto));
+                weapon.setCost(formatCost(dto));
+                updated++;
+            }
+            if (updated > 0) {
+                log.info("Imported cost and weight for {} existing official weapons", updated);
+            }
+        } catch (RuntimeException exception) {
+            log.warn("Could not import missing official weapon cost and weight; it will be retried on the next startup",
+                    exception);
+        }
+    }
+
     private Weapon toOfficialWeapon(WeaponDto dto) {
         List<WeaponProperty> properties = dto.getProperties() == null ? List.of()
                 : dto.getProperties().stream()
@@ -62,31 +88,37 @@ public class OfficialWeaponCatalogInitializer implements ApplicationRunner {
                                 .replace('-', '_').replace(' ', '_'))
                         .map(WeaponProperty::valueOf)
                         .toList();
-        return Weapon.official(dto.getIndex(), dto.getName(), properties, proficienciesFor(dto), toDiceTerms(dto.getDamage()));
+        return Weapon.official(dto.getIndex(), dto.getName(), formatWeight(dto), formatCost(dto),
+                properties, proficienciesFor(dto), toDiceTerms(dto.getDamage()));
+    }
+
+    private String formatWeight(WeaponDto dto) {
+        if (dto.getWeight() == null) {
+            return null;
+        }
+        return dto.getWeight().stripTrailingZeros().toPlainString() + " lb";
+    }
+
+    private String formatCost(WeaponDto dto) {
+        if (dto.getCost() == null || dto.getCost().getQuantity() == null || dto.getCost().getUnit() == null) {
+            return null;
+        }
+        return dto.getCost().getQuantity().stripTrailingZeros().toPlainString() + " " + dto.getCost().getUnit();
     }
 
     private List<WeaponProficiency> proficienciesFor(WeaponDto dto) {
-        List<WeaponProficiency> proficiencies = new java.util.ArrayList<>();
-        if (dto.getWeaponCategory() != null) {
-            proficiencies.add(WeaponProficiency.valueOf(dto.getWeaponCategory().toUpperCase(Locale.ROOT) + "_WEAPONS"));
+        if (dto.getWeaponCategory() == null) {
+            return List.of();
         }
-        if (dto.getIndex() != null) {
-            String weaponName = proficiencyNameFor(dto.getIndex());
-            try {
-                proficiencies.add(WeaponProficiency.valueOf(weaponName));
-            } catch (IllegalArgumentException ignored) {
-                // Some API weapons (for example blowgun ammunition) have no matching class proficiency.
-            }
-        }
-        return proficiencies;
-    }
 
-    private String proficiencyNameFor(String weaponIndex) {
-        return switch (weaponIndex) {
-            case "hand-crossbow" -> "CROSSBOW_HAND";
-            case "heavy-crossbow" -> "CROSSBOW_HEAVY";
-            case "light-crossbow" -> "CROSSBOW_LIGHT";
-            default -> weaponIndex.toUpperCase(Locale.ROOT).replace('-', '_');
+        return switch (dto.getWeaponCategory().toUpperCase(Locale.ROOT)) {
+            case "SIMPLE" -> List.of(WeaponProficiency.SIMPLE_WEAPONS);
+            case "MARTIAL" -> List.of(WeaponProficiency.MARTIAL_WEAPONS);
+            case "AMMUNITION" -> List.of(WeaponProficiency.AMMUNITION);
+            default -> {
+                log.warn("Skipping unsupported weapon proficiency category: {}", dto.getWeaponCategory());
+                yield List.of();
+            }
         };
     }
 
